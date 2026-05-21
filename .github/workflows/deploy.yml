@@ -1,3 +1,4 @@
+
 name: CI/CD Pipeline
 
 on:
@@ -28,3 +29,7 @@ jobs:
           docker build -t flask-app:latest /home/ubuntu/flask-app
           docker run -d --name flask-container -p 8080:8080 flask-app:latest
           echo "Deployment successful!"
+
+
+
+

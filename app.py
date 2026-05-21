@@ -3,7 +3,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "<h1>Hello from GitHub Actions CI/CD! pipeline 🚀</h1>"
+    return "<h1>Hello from GitHub Actions CI/CD! pipeline hh🚀</h1>"
 
 @app.route('/health')
 def health():

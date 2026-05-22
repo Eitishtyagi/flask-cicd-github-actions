@@ -32,6 +32,4 @@ jobs:
         docker push 367709774709.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
 
     - name: ASG Instance Refresh
-      run: |
-        aws autoscaling start-instance-refresh \
-          --auto-scaling-group-name
+      run: aws autoscaling start-instance-refresh --auto-scaling-group-name flask-asg --region us-east-1

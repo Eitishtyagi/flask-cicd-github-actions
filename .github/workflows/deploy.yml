@@ -1,33 +1,36 @@
 name: CI/CD Pipeline
+
 on:
   push:
     branches: [ main ]
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Copy files to EC2
-      uses: appleboy/scp-action@v0.1.7
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        source: "."
-        target: "/home/ec2-user/flask-app"
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
 
-    - name: Deploy to EC2
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          cd /home/ec2-user/flask-app
-          docker stop flask-container || true
-          docker rm flask-container || true
-          docker build -t flask-app:latest .
-          docker run -d --name flask-container -p 80:8080 flask-app:latest
-          echo "Deployment successful!"
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build and Push Docker Image to ECR
+      run: |
+        docker build -t flask-app .
+        docker tag flask-app:latest 367709774709.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
+        docker push 367709774709.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
+
+    - name: ASG Instance Refresh
+      run: |
+        aws autoscaling start-instance-refresh \
+          --auto-scaling-group-name flask-asg \
+          --region us-east-1
